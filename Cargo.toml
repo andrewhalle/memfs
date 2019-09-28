@@ -1,0 +1,14 @@
+[package]
+name = "memfs"
+version = "0.1.0"
+authors = ["Andrew Halle <ahalle@berkeley.edu>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fuse = "0.3.1"
+libc = "0.2.62"
+time = "0.1.42"
+lazy_static = "1.4.0"
+ctrlc = "3.1.3"
