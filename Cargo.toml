@@ -1,9 +1,6 @@
-[package]
-name = "memfs"
-version = "0.1.0"
-authors = ["Andrew Halle <ahalle@berkeley.edu>"]
-edition = "2018"
-build = "build.rs"
+[workspace]
 
-[dependencies]
-libc = "0.2.62"
+members = [
+  "fuse",
+  "memfs",
+]

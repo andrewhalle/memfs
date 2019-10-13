@@ -6,17 +6,15 @@ use std::mem::size_of;
 use std::os::raw::{c_char, c_int, c_void};
 use std::ptr::null_mut;
 
-pub mod fuse;
-
 fn log(s: &str) {
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
         .open("/home/andrew/Desktop/log.txt")
         .unwrap();
-    file.write_all("rust: ".as_bytes());
-    file.write_all(s.as_bytes());
-    file.write_all("\n".as_bytes());
+    file.write_all("rust: ".as_bytes()).unwrap();
+    file.write_all(s.as_bytes()).unwrap();
+    file.write_all("\n".as_bytes()).unwrap();
 }
 
 unsafe extern "C" fn hello_init(
@@ -29,7 +27,7 @@ unsafe extern "C" fn hello_init(
 }
 
 unsafe extern "C" fn hello_readdir(
-    path: *const c_char,
+    _path: *const c_char,
     buf: *mut c_void,
     filler: fuse::fuse_fill_dir_t,
     _offset: fuse::off_t,
@@ -53,7 +51,7 @@ unsafe extern "C" fn hello_readdir(
 unsafe extern "C" fn hello_getattr(
     path: *const c_char,
     stbuf: *mut fuse::stat,
-    fi: *mut fuse::fuse_file_info,
+    _fi: *mut fuse::fuse_file_info,
 ) -> c_int {
     log("hello_getattr called");
     memset(stbuf as *mut c_void, 0, size_of::<fuse::stat>());
@@ -68,17 +66,17 @@ unsafe extern "C" fn hello_getattr(
     0
 }
 
-unsafe extern "C" fn hello_open(path: *const c_char, fi: *mut fuse::fuse_file_info) -> c_int {
+unsafe extern "C" fn hello_open(_path: *const c_char, _fi: *mut fuse::fuse_file_info) -> c_int {
     log("hello_open called");
     0
 }
 
 unsafe extern "C" fn hello_read(
-    path: *const c_char,
+    _path: *const c_char,
     buf: *mut c_char,
-    size: size_t,
-    offset: off_t,
-    fi: *mut fuse::fuse_file_info,
+    _size: size_t,
+    _offset: off_t,
+    _fi: *mut fuse::fuse_file_info,
 ) -> c_int {
     memcpy(
         buf as *mut c_void,
