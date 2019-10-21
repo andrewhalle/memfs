@@ -6,11 +6,13 @@ use std::mem::size_of;
 use std::os::raw::{c_char, c_int, c_void};
 use std::ptr::null_mut;
 
+mod file;
+
 fn log(s: &str) {
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("/home/andrew/Desktop/log.txt")
+        .open("/home/vagrant/log.txt")
         .unwrap();
     file.write_all("rust: ".as_bytes()).unwrap();
     file.write_all(s.as_bytes()).unwrap();
@@ -134,7 +136,7 @@ fn main() {
     let argc = 2;
     let mut argv = [
         CString::new("memfs").unwrap().into_raw(),
-        CString::new("/home/andrew/Desktop/memfs")
+        CString::new("/home/vagrant/test")
             .unwrap()
             .into_raw(),
     ];
