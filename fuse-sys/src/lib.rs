@@ -2,6 +2,10 @@ mod raw;
 
 pub struct Fs {}
 
+impl Fs {
+    pub fn serve(self) {}
+}
+
 pub struct FsBuilder {}
 
 impl FsBuilder {
