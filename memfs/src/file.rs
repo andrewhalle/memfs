@@ -17,7 +17,7 @@ pub struct Permissions {
 #[derive(Default)]
 pub struct Ownership {
     owner: usize,
-    group: usize
+    group: usize,
 }
 
 pub struct File {
@@ -32,7 +32,7 @@ pub struct Directory {
 }
 
 pub struct Filesystem {
-    root: Directory
+    root: Directory,
 }
 
 impl File {
@@ -60,7 +60,10 @@ impl File {
 
 impl Directory {
     pub fn new() -> Directory {
-        Directory { files: HashMap::new(), directories: HashMap::new() }
+        Directory {
+            files: HashMap::new(),
+            directories: HashMap::new(),
+        }
     }
 
     pub fn touch(&mut self, filename: &str) {
@@ -70,7 +73,9 @@ impl Directory {
 
 impl Filesystem {
     pub fn new() -> Filesystem {
-        Filesystem { root: Directory::new() }
+        Filesystem {
+            root: Directory::new(),
+        }
     }
 }
 

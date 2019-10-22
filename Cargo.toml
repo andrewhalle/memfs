@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-  "fuse",
+  "fuse-sys",
   "memfs",
 ]
