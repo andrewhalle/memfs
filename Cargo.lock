@@ -3,10 +3,13 @@
 [[package]]
 name = "fuse"
 version = "0.1.0"
+dependencies = [
+ "libc 0.2.65 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "libc"
-version = "0.2.62"
+version = "0.2.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -14,8 +17,8 @@ name = "memfs"
 version = "0.1.0"
 dependencies = [
  "fuse 0.1.0",
- "libc 0.2.62 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.65 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [metadata]
-"checksum libc 0.2.62 (registry+https://github.com/rust-lang/crates.io-index)" = "34fcd2c08d2f832f376f4173a231990fa5aef4e99fb569867318a227ef4c06ba"
+"checksum libc 0.2.65 (registry+https://github.com/rust-lang/crates.io-index)" = "1a31a0627fdf1f6a39ec0dd577e101440b7db22672c0901fe00a9a6fbb5c24e8"
