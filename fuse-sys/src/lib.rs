@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::ffi::CString;
 use std::mem::size_of;
 use std::os::raw::c_char;
@@ -7,19 +8,18 @@ mod middle;
 mod raw;
 
 pub trait File {
-    pub fn data(&self) -> Vec<u8>;
+    fn data(&self) -> Vec<u8>;
+    fn name(&self) -> String;
 
-    pub fn size(&self) -> usize {
-        self.data().len()
+    fn size(&self) -> i64 {
+        self.data().len().try_into().unwrap()
     }
 }
 
 pub trait Directory {
-    pub fn directories(&self) -> Vec<Box<dyn Directory>>;
-    pub fn files(&self) -> Vec<Box<dyn File>>;
-    pub fn size(&self) -> usize {
-        0
-    }
+    fn directories(&self) -> Vec<Box<dyn Directory>>;
+    fn files(&self) -> Vec<Box<dyn File>>;
+    fn name(&self) -> String;
 }
 
 pub enum Node {
@@ -27,13 +27,29 @@ pub enum Node {
     Directory(Box<dyn Directory>),
 }
 
+impl Node {
+    fn size(&self) -> i64 {
+        match self {
+            Node::File(f) => f.size(),
+            Node::Directory(_) => 0,
+        }
+    }
+
+    fn is_directory(&self) -> bool {
+        match self {
+            Node::File(_) => false,
+            Node::Directory(_) => true,
+        }
+    }
+}
+
 pub trait FsDataStore {
-    pub fn getdir(&self, path: &str) -> Box<dyn Directory>;
-    pub fn search(&self, path: &str) -> Option<Node>;
+    fn getdir(&self, path: &str) -> Option<Box<dyn Directory>>;
+    fn search(&self, path: &str) -> Option<Node>;
 }
 
 pub struct Fs {
-    data: Box<dyn FsDataStore>,
+    pub data: Box<dyn FsDataStore>,
 }
 
 impl Fs {
