@@ -7,9 +7,9 @@ use std::mem::size_of;
 use std::os::raw::{c_char, c_int, c_void};
 use std::ptr::null_mut;
 
-use super::raw;
+use super::{raw, FsDataStore};
 
-pub static mut MSG: Option<String> = None;
+pub static mut FILES: Option<Box<dyn FsDataStore>> = None;
 
 fn log(s: &str) {
     let mut file = OpenOptions::new()
@@ -42,13 +42,27 @@ pub unsafe extern "C" fn fuse_readdir(
     log("hello_readdir called");
     filler.unwrap()(buf, CString::new(".").unwrap().as_ptr(), null_mut(), 0, 0);
     filler.unwrap()(buf, CString::new("..").unwrap().as_ptr(), null_mut(), 0, 0);
-    filler.unwrap()(
-        buf,
-        CString::new("hello.txt").unwrap().as_ptr(),
-        null_mut(),
-        0,
-        0,
-    );
+    let dir = FILES
+        .unwrap()
+        .getdir(CString::from_raw(_path).into_string().unwrap());
+    for directory in dir.directories() {
+        filler.unwrap()(
+            buf,
+            CString::new(directory.name).unwrap().as_ptr(),
+            null_mut(),
+            0,
+            0,
+        );
+    }
+    for file in dir.files() {
+        filler.unwrap()(
+            buf,
+            CString::new(file.name).unwrap().as_ptr(),
+            null_mut(),
+            0,
+            0,
+        );
+    }
 
     0
 }
@@ -60,14 +74,18 @@ pub unsafe extern "C" fn fuse_getattr(
 ) -> c_int {
     log("hello_getattr called");
     memset(stbuf as *mut c_void, 0, size_of::<raw::stat>());
-    if strcmp(path, CString::new("/").unwrap().as_ptr()) == 0 {
+    let node = FILES
+        .unwrap()
+        .search(CString::from_raw(path).into_string().unwrap());
+    if node.is_directory() {
         (*stbuf).st_mode = 0o755 | S_IFDIR;
         (*stbuf).st_nlink = 2;
     } else {
         (*stbuf).st_mode = 0o755 | S_IFREG;
         (*stbuf).st_nlink = 1;
-        (*stbuf).st_size = MSG.clone().unwrap().len().try_into().unwrap();
+        (*stbuf).st_size = node.size();
     }
+
     0
 }
 

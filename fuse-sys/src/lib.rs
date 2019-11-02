@@ -6,8 +6,34 @@ use std::ptr::null_mut;
 mod middle;
 mod raw;
 
+pub trait File {
+    pub fn data(&self) -> Vec<u8>;
+
+    pub fn size(&self) -> usize {
+        self.data().len()
+    }
+}
+
+pub trait Directory {
+    pub fn directories(&self) -> Vec<Box<dyn Directory>>;
+    pub fn files(&self) -> Vec<Box<dyn File>>;
+    pub fn size(&self) -> usize {
+        0
+    }
+}
+
+pub enum Node {
+    File(Box<dyn File>),
+    Directory(Box<dyn Directory>),
+}
+
+pub trait FsDataStore {
+    pub fn getdir(&self, path: &str) -> Box<dyn Directory>;
+    pub fn search(&self, path: &str) -> Option<Node>;
+}
+
 pub struct Fs {
-    msg: String,
+    data: Box<dyn FsDataStore>,
 }
 
 impl Fs {
@@ -21,7 +47,7 @@ impl Fs {
         ];
 
         unsafe {
-            middle::MSG = Some(self.msg.clone());
+            middle::FILES = Some(self);
             raw::fuse_main_real(
                 argc,
                 &mut argv[0] as *mut *mut c_char,
@@ -29,20 +55,6 @@ impl Fs {
                 size_of::<raw::fuse_operations>(),
                 null_mut(),
             );
-        }
-    }
-}
-
-pub struct FsBuilder {}
-
-impl FsBuilder {
-    pub fn new() -> FsBuilder {
-        FsBuilder {}
-    }
-
-    pub fn finish(self) -> Fs {
-        Fs {
-            msg: String::from("goodbye, world\n"),
         }
     }
 }
