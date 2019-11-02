@@ -32,6 +32,7 @@ impl FsDataStore for MemFs {
             path
         ));
         if path == "/" {
+            log("returning root directory");
             return Some(Node::Directory(Box::new(self.root.clone())));
         } else {
             return self.root.search(path);
