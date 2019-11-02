@@ -89,6 +89,7 @@ pub unsafe extern "C" fn fuse_getattr(
         (*stbuf).st_size = node.size();
     }
 
+    log("ending fuse_getattr");
     0
 }
 
