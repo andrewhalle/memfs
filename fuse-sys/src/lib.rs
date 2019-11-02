@@ -1,11 +1,24 @@
 use std::convert::TryInto;
 use std::ffi::CString;
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::mem::size_of;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
 
 mod middle;
 mod raw;
+
+pub fn log(s: &str) {
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("/tmp/memfs-log.txt")
+        .unwrap();
+    file.write_all("rust: ".as_bytes()).unwrap();
+    file.write_all(s.as_bytes()).unwrap();
+    file.write_all("\n".as_bytes()).unwrap();
+}
 
 pub trait File {
     fn data(&self) -> Vec<u8>;

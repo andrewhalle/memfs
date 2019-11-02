@@ -1,27 +1,14 @@
 use libc::{memcpy, memset, off_t, size_t, S_IFDIR, S_IFREG};
 use std::convert::TryInto;
 use std::ffi::CString;
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::mem::size_of;
 use std::os::raw::{c_char, c_int, c_void};
 use std::ptr::null_mut;
 
-use super::raw;
+use super::{log, raw};
 use crate::Fs;
 
 pub static mut FILES: Option<Fs> = None;
-
-fn log(s: &str) {
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open("/tmp/memfs-log.txt")
-        .unwrap();
-    file.write_all("rust: ".as_bytes()).unwrap();
-    file.write_all(s.as_bytes()).unwrap();
-    file.write_all("\n".as_bytes()).unwrap();
-}
 
 pub unsafe extern "C" fn fuse_init(
     _conn: *mut raw::fuse_conn_info,
@@ -93,6 +80,7 @@ pub unsafe extern "C" fn fuse_getattr(
         )
         .unwrap();
     if node.is_directory() {
+        log("inside is_directory");
         (*stbuf).st_mode = 0o755 | S_IFDIR;
         (*stbuf).st_nlink = 2;
     } else {
