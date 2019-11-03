@@ -40,3 +40,10 @@ memfs
         * file module, implementing the data structures required for the filesystem
         * functions module, implementing the functions for the file system
         * main, tie everything together
+
+## 2019-11-02
+
+decided on a trait/trait object model for communicating between fuse-sys and memfs, filled out most
+of the implementation, and it builds, but unable to read the directory, because of an apparent double
+free? weird. Also, moved away from using fuse_main, so will be able to easily implement catching
+CTRL-C to stop the process and unmount, when I get it working.
