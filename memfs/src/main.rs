@@ -17,15 +17,24 @@ impl MemFs {
         self.root.add_file(f);
         self
     }
+
+    fn add_dir(mut self, d: MemFsDirectory) -> MemFs {
+        self.root.add_dir(d);
+        self
+    }
 }
 
 impl FsDataStore for MemFs {
     fn getdir(&self, path: &str) -> Option<Box<dyn Directory>> {
-        if path != "/" {
-            return None;
+        if path == "/" {
+            Some(Box::new(self.root.clone()))
+        } else {
+            let node = self.search(path);
+            match node {
+                Some(Node::Directory(d)) => Some(d),
+                _ => None,
+            }
         }
-
-        Some(Box::new(self.root.clone()))
     }
 
     fn search(&self, path: &str) -> Option<Node> {
@@ -99,7 +108,7 @@ impl MemFsDirectory {
     }
 
     pub fn search(&self, path: &str) -> Option<Node> {
-        if path == "/" {
+        if path == "/" || path == "" {
             Some(Node::Directory(Box::new(self.clone())))
         } else {
             if self.files.contains_key(get_leading_entry(path)) {
@@ -119,6 +128,10 @@ impl MemFsDirectory {
 
     pub fn add_file(&mut self, f: MemFsFile) {
         self.files.insert(f.name.clone(), f);
+    }
+
+    pub fn add_dir(&mut self, d: MemFsDirectory) {
+        self.directories.insert(d.name.clone(), d);
     }
 }
 
@@ -147,15 +160,22 @@ impl Directory for MemFsDirectory {
 }
 
 fn main() {
+    let mut subdir = MemFsDirectory::new("subdir");
+    subdir.add_file(MemFsFile {
+        name: String::from("c.txt"),
+        contents: String::from("c contents"),
+    });
+
     let fs_data = MemFs::new()
         .add_file(MemFsFile {
-            name: String::from("hello.txt"),
-            contents: String::from("hello world!!"),
+            name: String::from("a.txt"),
+            contents: String::from("a contents"),
         })
         .add_file(MemFsFile {
-            name: String::from("goodbye.txt"),
-            contents: String::from("goodbye world!!"),
-        });
+            name: String::from("b.txt"),
+            contents: String::from("b contents"),
+        })
+        .add_dir(subdir);
 
     let fs = Fs {
         data: Box::new(fs_data),
