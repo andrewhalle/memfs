@@ -1,11 +1,11 @@
 use libc::{memcpy, memset, off_t, size_t, S_IFDIR, S_IFREG};
 use std::convert::TryInto;
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::mem::size_of;
 use std::os::raw::{c_char, c_int, c_void};
 use std::ptr::null_mut;
 
-use super::{log, raw};
+use super::raw;
 use crate::Fs;
 
 pub static mut FILES: Option<Fs> = None;
@@ -14,7 +14,7 @@ pub unsafe extern "C" fn fuse_init(
     _conn: *mut raw::fuse_conn_info,
     cfg: *mut raw::fuse_config,
 ) -> *mut c_void {
-    log("hello_init called");
+    println!("hello_init called");
     (*cfg).kernel_cache = 1;
     null_mut()
 }
@@ -27,18 +27,14 @@ pub unsafe extern "C" fn fuse_readdir(
     _fi: *mut raw::fuse_file_info,
     _flags: raw::fuse_readdir_flags,
 ) -> c_int {
-    log("hello_readdir called");
+    println!("hello_readdir called");
     filler.unwrap()(buf, CString::new(".").unwrap().as_ptr(), null_mut(), 0, 0);
     filler.unwrap()(buf, CString::new("..").unwrap().as_ptr(), null_mut(), 0, 0);
     let dir = FILES
         .as_ref()
         .unwrap()
         .data
-        .getdir(
-            &CString::from_raw(_path as *mut c_char)
-                .into_string()
-                .unwrap(),
-        )
+        .getdir(CStr::from_ptr(_path).to_str().unwrap())
         .unwrap();
     for directory in dir.directories() {
         filler.unwrap()(
@@ -67,20 +63,16 @@ pub unsafe extern "C" fn fuse_getattr(
     stbuf: *mut raw::stat,
     _fi: *mut raw::fuse_file_info,
 ) -> c_int {
-    log("hello_getattr called");
+    println!("fuse_getattr called");
     memset(stbuf as *mut c_void, 0, size_of::<raw::stat>());
     let node = FILES
         .as_ref()
         .unwrap()
         .data
-        .search(
-            &CString::from_raw(path as *mut c_char)
-                .into_string()
-                .unwrap(),
-        )
+        .search(CStr::from_ptr(path).to_str().unwrap())
         .unwrap();
     if node.is_directory() {
-        log("inside is_directory");
+        println!("inside is_directory");
         (*stbuf).st_mode = 0o755 | S_IFDIR;
         (*stbuf).st_nlink = 2;
     } else {
@@ -89,12 +81,12 @@ pub unsafe extern "C" fn fuse_getattr(
         (*stbuf).st_size = node.size();
     }
 
-    log("ending fuse_getattr");
+    println!("ending fuse_getattr");
     0
 }
 
 pub unsafe extern "C" fn fuse_open(_path: *const c_char, _fi: *mut raw::fuse_file_info) -> c_int {
-    log("hello_open called");
+    println!("hello_open called");
     0
 }
 
@@ -105,7 +97,7 @@ pub unsafe extern "C" fn fuse_read(
     _offset: off_t,
     _fi: *mut raw::fuse_file_info,
 ) -> c_int {
-    log("fuse_read called");
+    println!("fuse_read called");
     let length: i32 = 13;
     memcpy(
         buf as *mut c_void,

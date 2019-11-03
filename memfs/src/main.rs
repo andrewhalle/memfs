@@ -1,4 +1,4 @@
-use fuse::{log, Directory, File, Fs, FsDataStore, Node};
+use fuse::{Directory, File, Fs, FsDataStore, Node};
 
 pub struct MemFs {
     root: MemFsDirectory,
@@ -27,12 +27,9 @@ impl FsDataStore for MemFs {
     }
 
     fn search(&self, path: &str) -> Option<Node> {
-        log(&format!(
-            "successfully calling into search, path is {}",
-            path
-        ));
+        println!("successfully calling into search, path is {}", path);
         if path == "/" {
-            log("returning root directory");
+            println!("returning root directory");
             return Some(Node::Directory(Box::new(self.root.clone())));
         } else {
             return self.root.search(path);
@@ -106,10 +103,15 @@ impl Directory for MemFsDirectory {
 }
 
 fn main() {
-    let fs_data = MemFs::new().add_file(MemFsFile {
-        name: String::from("hello.txt"),
-        contents: String::from("hello world!!"),
-    });
+    let fs_data = MemFs::new()
+        .add_file(MemFsFile {
+            name: String::from("hello.txt"),
+            contents: String::from("hello world!!"),
+        })
+        .add_file(MemFsFile {
+            name: String::from("goodbye.txt"),
+            contents: String::from("goodbye world!!"),
+        });
 
     let fs = Fs {
         data: Box::new(fs_data),
