@@ -14,7 +14,7 @@ pub unsafe extern "C" fn fuse_init(
     _conn: *mut raw::fuse_conn_info,
     cfg: *mut raw::fuse_config,
 ) -> *mut c_void {
-    println!("hello_init called");
+    println!("fuse_init called");
     (*cfg).kernel_cache = 1;
     null_mut()
 }
@@ -27,7 +27,7 @@ pub unsafe extern "C" fn fuse_readdir(
     _fi: *mut raw::fuse_file_info,
     _flags: raw::fuse_readdir_flags,
 ) -> c_int {
-    println!("hello_readdir called");
+    println!("fuse_readdir called");
     filler.unwrap()(buf, CString::new(".").unwrap().as_ptr(), null_mut(), 0, 0);
     filler.unwrap()(buf, CString::new("..").unwrap().as_ptr(), null_mut(), 0, 0);
     let dir = FILES
@@ -72,7 +72,6 @@ pub unsafe extern "C" fn fuse_getattr(
         .search(CStr::from_ptr(path).to_str().unwrap())
         .unwrap();
     if node.is_directory() {
-        println!("inside is_directory");
         (*stbuf).st_mode = 0o755 | S_IFDIR;
         (*stbuf).st_nlink = 2;
     } else {
@@ -81,12 +80,11 @@ pub unsafe extern "C" fn fuse_getattr(
         (*stbuf).st_size = node.size();
     }
 
-    println!("ending fuse_getattr");
     0
 }
 
 pub unsafe extern "C" fn fuse_open(_path: *const c_char, _fi: *mut raw::fuse_file_info) -> c_int {
-    println!("hello_open called");
+    println!("fuse_open called");
     0
 }
 
