@@ -5,7 +5,7 @@ use std::mem::size_of;
 use std::os::raw::{c_char, c_int, c_void};
 use std::ptr::null_mut;
 
-use super::raw;
+use super::{raw, Node};
 use crate::Fs;
 
 pub static mut FILES: Option<Fs> = None;
@@ -98,13 +98,23 @@ pub unsafe extern "C" fn fuse_read(
     _fi: *mut raw::fuse_file_info,
 ) -> c_int {
     println!("fuse_read called");
-    let length: i32 = 13;
-    memcpy(
-        buf as *mut c_void,
-        CString::new("hello world\n".as_bytes()).unwrap().as_ptr() as *mut c_void,
-        length.try_into().unwrap(),
-    );
-    length
+    let node = FILES
+        .as_ref()
+        .unwrap()
+        .data
+        .search(CStr::from_ptr(_path).to_str().unwrap())
+        .unwrap();
+    if let Node::File(f) = node {
+        memcpy(
+            buf as *mut c_void,
+            CString::new(f.data()).unwrap().as_ptr() as *mut c_void,
+            f.data().len().try_into().unwrap(),
+        );
+
+        f.data().len().try_into().unwrap()
+    } else {
+        panic!()
+    }
 }
 
 pub fn get_oper() -> raw::fuse_operations {
