@@ -83,6 +83,7 @@ impl Fs {
             // add an exit handler to unmount the filesystem
             let fhw = FuseHandleWrapper { handle };
             ctrlc::set_handler(move || {
+                println!("unmounting fs...");
                 raw::fuse_unmount(fhw.handle);
             })
             .unwrap();
