@@ -52,6 +52,14 @@ pub struct Fs {
     pub data: Box<dyn FsDataStore>,
 }
 
+// rust makes raw pointers !Send + !Sync as a lint to programmers
+// to check their types, and implement Send manually if it would
+// be okay
+pub struct FuseHandleWrapper {
+    handle: *mut raw::fuse,
+}
+unsafe impl Send for FuseHandleWrapper {}
+
 impl Fs {
     pub fn serve(self) {
         let mut hello_oper = middle::get_oper();
@@ -63,6 +71,7 @@ impl Fs {
             allocated: 0,
         };
         unsafe {
+            // set the shared data and create the file system
             middle::FILES = Some(self);
             let handle = raw::fuse_new(
                 &mut args as *mut raw::fuse_args,
@@ -70,6 +79,15 @@ impl Fs {
                 size_of::<raw::fuse_operations>(),
                 null_mut(),
             );
+
+            // add an exit handler to unmount the filesystem
+            let fhw = FuseHandleWrapper { handle };
+            ctrlc::set_handler(move || {
+                raw::fuse_unmount(fhw.handle);
+            })
+            .unwrap();
+
+            // mount the filesystem and run the event loop
             raw::fuse_mount(handle, CString::new("/tmp/memfs").unwrap().into_raw());
             raw::fuse_loop(handle);
         }

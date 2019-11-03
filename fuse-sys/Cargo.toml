@@ -7,3 +7,4 @@ build = "build.rs"
 
 [dependencies]
 libc = "0.2.65"
+ctrlc = "3.1.3"
