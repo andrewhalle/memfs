@@ -163,17 +163,17 @@ fn main() {
     let mut subdir = MemFsDirectory::new("subdir");
     subdir.add_file(MemFsFile {
         name: String::from("c.txt"),
-        contents: String::from("c contents"),
+        contents: String::from("c contents\n"),
     });
 
     let fs_data = MemFs::new()
         .add_file(MemFsFile {
             name: String::from("a.txt"),
-            contents: String::from("a contents"),
+            contents: String::from("a contents\n"),
         })
         .add_file(MemFsFile {
             name: String::from("b.txt"),
-            contents: String::from("b contents"),
+            contents: String::from("b contents\n"),
         })
         .add_dir(subdir);
 
