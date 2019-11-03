@@ -22,6 +22,7 @@
 
 project organization
 
+```
 memfs
 ├── Cargo.toml
 ├── fuse-sys
@@ -31,6 +32,7 @@ memfs
     ├── file.rs
     ├── functions.rs
     └── main.rs
+```
 
 * memfs workspace
     * fuse-sys crate
