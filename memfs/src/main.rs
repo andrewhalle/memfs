@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use fuse::{Directory, File, Fs, FsDataStore, Node};
 
 pub struct MemFs {
@@ -45,7 +47,7 @@ pub struct MemFsFile {
 
 impl File for MemFsFile {
     fn data(&self) -> Vec<u8> {
-        Vec::new()
+        self.contents.clone().into_bytes()
     }
 
     fn name(&self) -> String {
@@ -56,41 +58,83 @@ impl File for MemFsFile {
 #[derive(Clone)]
 pub struct MemFsDirectory {
     name: String,
-    files: Vec<MemFsFile>,
+    files: HashMap<String, MemFsFile>,
+    directories: HashMap<String, MemFsDirectory>,
+}
+
+// Path helper functions for search.
+fn get_leading_entry(path: &str) -> &str {
+    let mut retval = path;
+    if let Some(0) = retval.find("/") {
+        retval = &retval[1..];
+    }
+
+    if let Some(index) = retval.find("/") {
+        &retval[0..index]
+    } else {
+        retval
+    }
+}
+
+fn get_remaining(path: &str) -> &str {
+    let mut retval = path;
+    if let Some(0) = retval.find("/") {
+        retval = &retval[1..];
+    }
+
+    if let Some(index) = retval.find("/") {
+        &retval[index..]
+    } else {
+        ""
+    }
 }
 
 impl MemFsDirectory {
     pub fn new(name: &str) -> MemFsDirectory {
         MemFsDirectory {
             name: String::from(name),
-            files: Vec::new(),
+            files: HashMap::new(),
+            directories: HashMap::new(),
         }
     }
 
     pub fn search(&self, path: &str) -> Option<Node> {
-        // XXX actually implement
         if path == "/" {
             Some(Node::Directory(Box::new(self.clone())))
-        } else if path == "/hello.txt" {
-            Some(Node::File(Box::new(self.files[0].clone())))
         } else {
-            None
+            if self.files.contains_key(get_leading_entry(path)) {
+                Some(Node::File(Box::new(
+                    self.files.get(get_leading_entry(path)).unwrap().clone(),
+                )))
+            } else if self.directories.contains_key(get_leading_entry(path)) {
+                self.directories
+                    .get(get_leading_entry(path))
+                    .unwrap()
+                    .search(get_remaining(path))
+            } else {
+                None
+            }
         }
     }
 
     pub fn add_file(&mut self, f: MemFsFile) {
-        self.files.push(f);
+        self.files.insert(f.name.clone(), f);
     }
 }
 
 impl Directory for MemFsDirectory {
     fn directories(&self) -> Vec<Box<dyn Directory>> {
-        Vec::new()
+        let mut retval: Vec<Box<dyn Directory>> = Vec::new();
+        for (_, dir) in self.directories.iter() {
+            retval.push(Box::new(dir.clone()));
+        }
+
+        retval
     }
 
     fn files(&self) -> Vec<Box<dyn File>> {
         let mut retval: Vec<Box<dyn File>> = Vec::new();
-        for file in self.files.iter() {
+        for (_, file) in self.files.iter() {
             retval.push(Box::new(file.clone()));
         }
 
