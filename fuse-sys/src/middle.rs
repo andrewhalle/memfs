@@ -105,6 +105,7 @@ pub unsafe extern "C" fn fuse_read(
     _offset: off_t,
     _fi: *mut raw::fuse_file_info,
 ) -> c_int {
+    log("fuse_read called");
     let length: i32 = 13;
     memcpy(
         buf as *mut c_void,
